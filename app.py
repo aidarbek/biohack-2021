@@ -24,7 +24,7 @@ def request_query():
         f.write(data.get('dna'))
         f.close()
         f = open(restrictions_file, "w")
-        f.write(data.get('restrictions'))
+        f.write(data.get('restrictions').replace('\r', ''))
         f.close()
         stream = os.popen('./a.out ' + " ".join([dna_file, output_file, restrictions_file]))
         output = stream.read()
