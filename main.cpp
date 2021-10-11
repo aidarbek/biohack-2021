@@ -198,18 +198,18 @@ int main(int argc, char *argv[]) {
         outputFile = std::string(argv[2]);
         selectedRestrictionsFile = std::string(argv[3]);
     } else {
-        std::cerr << "Need to specify files for DNA sequence, output, and selected restrictions";
+        std::cerr << "Need to specify files for DNA sequence, output, and selected restrictions\n";
         return 0;
     }
     // Amino Acids. Source: http://www.hgmd.cf.ac.uk/docs/cd_amino.html
     std::shared_ptr<AminoAcids> acids(new AminoAcids("acids.txt"));
     std::string codonExample = "TCT";
     std::vector<std::string> codons = acids->getAlternativeCodons(codonExample);
-    
+
     // Restriction Sites (from 5' to 3'). Source:http://rebase.neb.com/rebase/link_bairochc
     std::shared_ptr<RestrictionEnzymes> enzymesObj(new RestrictionEnzymes("restrictions.txt", selectedRestrictionsFile));
     std::vector<std::pair<std::string, std::string> > restrictionEnzymes = enzymesObj->getEnzymes();
-    
+
     // O(n * c * m), n - DNA, m - length of restr seq, c - num of rest seq
     std::string dnaSequence = "";
     std::ifstream DNAFile(inputDnaFile);
