@@ -45,7 +45,7 @@
             $("#submitButton").click(function(){
                 const dna = $("#dna").val().trim();
                 const restrictions = $("#restrictions").val().trim();
-                $.post("/request", {dna: dna.toUpperCase(), restrictions: restrictions.toUpperCase()}).done(function(data){
+                $.post("/request", {dna: dna.toUpperCase(), restrictions: restrictions}).done(function(data){
                     console.log(data);
                     const changes = data.data.map(str => {
                         const arr = str.split(",");
