@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <set>
 
 // Min length of restricted sequence
 int MIN_SEQ_LENGTH = 4;
@@ -88,8 +89,9 @@ void insertSequences(std::string & line, std::string & enzymeName) {
         if(line[i] == ' ' && currSequence.size() != 0) {
             start = false;
             std::reverse(currSequence.begin(), currSequence.end());
-            if(currSequence.size() >= MIN_SEQ_LENGTH)
+            if(currSequence.size() >= MIN_SEQ_LENGTH) {
                 sequences.push_back(std::make_pair(currSequence, enzymeName));
+            }
             currSequence.clear();
             continue;
         }
@@ -99,10 +101,18 @@ void insertSequences(std::string & line, std::string & enzymeName) {
 }
 
 public:
-    RestrictionEnzymes(std::string filename) {
-        std::ifstream AminoAcidsFile(filename);
+    RestrictionEnzymes(std::string filename, std::string selectedRestrictionsFilename = "") {
         std::string fileLine;
+        std::set<std::string> selectedRestrictions;
 
+        if(selectedRestrictionsFilename.size() > 0) {
+            std::ifstream SelectedFile(selectedRestrictionsFilename);
+            while (getline (SelectedFile, fileLine)) {
+                selectedRestrictions.insert(fileLine);
+            }
+        }
+
+        std::ifstream AminoAcidsFile(filename);
         std::string curSeqName = "";
         while (getline (AminoAcidsFile, fileLine)) {
             std::string lineType = "";
@@ -113,8 +123,11 @@ public:
             }
             if(lineType == "RS") {
                 // Name already known by the time we reach sequences
-                insertSequences(fileLine, curSeqName);
-                curSeqName.clear();
+                if(selectedRestrictions.size() == 0
+                || selectedRestrictions.find(curSeqName) != selectedRestrictions.end()) {
+                    insertSequences(fileLine, curSeqName);
+                    curSeqName.clear();
+                }
             }
         }
     }
@@ -149,29 +162,56 @@ int getMatchingRestrictionSequence(std::string & dnaSequence
     return -1;
 }
 
-void replaceRestrictedSequence(std::string & dnaSequence
-    , std::vector<std::pair<std::string
-    ,std::string> > & restrictionEnzymes
-    ,int start
-    ,int end
-    ,int sequenceIndex) {
-    // TODO: Replace restricted sequence with amino acids
+// Returns index and string within sequence to which replace it
+std::pair<int, std::string> replaceRestrictedSequence(std::string & dnaSequence
+    , std::shared_ptr<AminoAcids> acids
+    , std::vector<std::pair<std::string, std::string> > & restrictionEnzymes
+    , int start
+    , int end
+    , int sequenceIndex
+    , int restrictionStart
+    , int restrictionEnd
+) {
+    for(int i = restrictionStart; i < restrictionEnd; i++) {
+        if((i - start) % 3 == 0) {
+            std::string acid;
+            acid += dnaSequence[i];
+            acid += dnaSequence[i + 1];
+            acid += dnaSequence[i + 2];
+            std::vector< std::string > alternatives = acids->getAlternativeCodons(acid);
+            if(alternatives.size() > 0) {
+                return std::make_pair(i, alternatives[0]);
+            }
+        }
+    }
+    return std::make_pair(-1, "");
 }
 
 
-int main() {
+int main(int argc, char *argv[]) {
+    std::string inputDnaFile;
+    std::string outputFile;
+    std::string selectedRestrictionsFile;
+    if(argc == 4){
+        inputDnaFile = std::string(argv[1]);
+        outputFile = std::string(argv[2]);
+        selectedRestrictionsFile = std::string(argv[3]);
+    } else {
+        std::cerr << "Need to specify files for DNA sequence, output, and selected restrictions";
+        return 0;
+    }
     // Amino Acids. Source: http://www.hgmd.cf.ac.uk/docs/cd_amino.html
-    std::unique_ptr<AminoAcids> acids(new AminoAcids("acids.txt"));
+    std::shared_ptr<AminoAcids> acids(new AminoAcids("acids.txt"));
     std::string codonExample = "TCT";
     std::vector<std::string> codons = acids->getAlternativeCodons(codonExample);
     
     // Restriction Sites (from 5' to 3'). Source:http://rebase.neb.com/rebase/link_bairochc
-    std::unique_ptr<RestrictionEnzymes> enzymesObj(new RestrictionEnzymes("restrictions.txt"));
+    std::shared_ptr<RestrictionEnzymes> enzymesObj(new RestrictionEnzymes("restrictions.txt", selectedRestrictionsFile));
     std::vector<std::pair<std::string, std::string> > restrictionEnzymes = enzymesObj->getEnzymes();
     
     // O(n * c * m), n - DNA, m - length of restr seq, c - num of rest seq
     std::string dnaSequence = "";
-    std::ifstream DNAFile("dna.txt");
+    std::ifstream DNAFile(inputDnaFile);
     char byte;
     while (DNAFile.get(byte)) {
         dnaSequence.push_back(byte);
@@ -194,7 +234,6 @@ int main() {
         codon += dnaSequence[i];
         codon += dnaSequence[i + 1];
         codon += dnaSequence[i + 2];
-        //std::cout << codon << std::endl;
         if(codon == startCodon && startIndex == -1) {
             startIndex = i + 3;
         } else if(startIndex > -1 && (i - startIndex) % 3 == 0 && acids->getCodonName(codon) == endCodonName) {
@@ -207,14 +246,35 @@ int main() {
         startIndex = 0;
         endIndex = dnaSequence.size();
     }
+    std::vector< std::pair<int, std::string> > result;
     for(int i = startIndex; i < endIndex; i++) {
         int sequenceIndex = getMatchingRestrictionSequence(dnaSequence, restrictionEnzymes, startIndex, endIndex, i);
         if(sequenceIndex != -1) {
-            replaceRestrictedSequence(dnaSequence, restrictionEnzymes, startIndex, endIndex, sequenceIndex);
+            int restrictionSize = restrictionEnzymes[sequenceIndex].first.size();
+            std::pair<int, std::string> replacement;
+            replacement = replaceRestrictedSequence(
+                dnaSequence,
+                acids,
+                restrictionEnzymes,
+                startIndex,
+                endIndex,
+                sequenceIndex,
+                i,
+                i + restrictionSize
+            );
+            result.push_back(replacement);
+            if(replacement.first != -1) {
+                i = i + restrictionSize - 1;
+            }
         }
     }
 
-    //std::cout << dnaSequence;
+    std::ofstream resultFile;
+    resultFile.open(outputFile);
+    for(int i = 0; i < result.size(); i++) {
+        resultFile << result[i].first << "," << result[i].second;
+    }
+    resultFile.close();
 
     return 0;
 }
