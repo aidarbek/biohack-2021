@@ -3,6 +3,7 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>   
     </head>
     <body>
@@ -44,7 +45,7 @@
             $("#submitButton").click(function(){
                 const dna = $("#dna").val().trim();
                 const restrictions = $("#restrictions").val().trim();
-                $.post("/request", {dna: dna, restrictions: restrictions}).done(function(data){
+                $.post("/request", {dna: dna.toUpperCase(), restrictions: restrictions.toUpperCase()}).done(function(data){
                     console.log(data);
                     const changes = data.data.map(str => {
                         const arr = str.split(",");
@@ -99,17 +100,13 @@
                         if(changeIndex == -1) {
                             htmlOldDna += dna[i];
                         } else {
-                            htmlOldDna += "<b>";
+                            htmlOldDna += '<button onclick="alert(`'+changes[changeIndex].enzyme+'`)" class="btn btn-secondary">';
                             htmlOldDna += changes[changeIndex].sequence;
-                            htmlOldDna += "</b>";
-                            htmlOldDna += "(<u>Name: ";
-                            htmlOldDna += changes[changeIndex].enzyme;
-                            htmlOldDna += "</u>)";
+                            htmlOldDna += "</button>";
                             i = i + changes[changeIndex].sequence.length - 1;
                         }
                     }
                     $("#foundEnzymesRes").html(htmlOldDna);
-                    
                 });
             });
         </script>
