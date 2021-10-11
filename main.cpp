@@ -5,6 +5,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <algorithm>
 
 // Min length of restricted sequence
 int MIN_SEQ_LENGTH = 4;
@@ -247,6 +248,7 @@ int main(int argc, char *argv[]) {
         endIndex = dnaSequence.size();
     }
     std::vector< std::pair<int, std::string> > result;
+    std::vector< std::string > result_enzyme_names;
     for(int i = startIndex; i < endIndex; i++) {
         int sequenceIndex = getMatchingRestrictionSequence(dnaSequence, restrictionEnzymes, startIndex, endIndex, i);
         if(sequenceIndex != -1) {
@@ -263,6 +265,7 @@ int main(int argc, char *argv[]) {
                 i + restrictionSize
             );
             result.push_back(replacement);
+            result_enzyme_names.push_back(restrictionEnzymes[sequenceIndex].second);
             if(replacement.first != -1) {
                 i = i + restrictionSize - 1;
             }
@@ -272,9 +275,11 @@ int main(int argc, char *argv[]) {
     std::ofstream resultFile;
     resultFile.open(outputFile);
     for(int i = 0; i < result.size(); i++) {
-        resultFile << result[i].first << "," << result[i].second;
+        resultFile << result[i].first << "," << result[i].second <<"," << result_enzyme_names[i] << std::endl;
     }
     resultFile.close();
+
+    std::cout << "Done!" << std::endl;
 
     return 0;
 }
