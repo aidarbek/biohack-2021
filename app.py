@@ -21,7 +21,9 @@ def request_query():
         restrictions_file = random_str + "restrictions.txt"
         output_file = random_str + "output.txt"
         f = open(dna_file, "w")
-        f.write(data.get('dna'))
+        data_in = data.get('dna').split('\n')
+        for line in data_in:
+            f.write(line.upper())
         f.close()
         f = open(restrictions_file, "w")
         f.write(data.get('restrictions').replace('\r', ''))
