@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <algorithm>
 
 // Min length of restricted sequence
 int MIN_SEQ_LENGTH = 4;
@@ -164,11 +165,11 @@ int main() {
     std::unique_ptr<AminoAcids> acids(new AminoAcids("acids.txt"));
     std::string codonExample = "TCT";
     std::vector<std::string> codons = acids->getAlternativeCodons(codonExample);
-    
+
     // Restriction Sites (from 5' to 3'). Source:http://rebase.neb.com/rebase/link_bairochc
     std::unique_ptr<RestrictionEnzymes> enzymesObj(new RestrictionEnzymes("restrictions.txt"));
     std::vector<std::pair<std::string, std::string> > restrictionEnzymes = enzymesObj->getEnzymes();
-    
+
     // O(n * c * m), n - DNA, m - length of restr seq, c - num of rest seq
     std::string dnaSequence = "";
     std::ifstream DNAFile("dna.txt");
@@ -213,6 +214,8 @@ int main() {
             replaceRestrictedSequence(dnaSequence, restrictionEnzymes, startIndex, endIndex, sequenceIndex);
         }
     }
+
+    
 
     //std::cout << dnaSequence;
 
