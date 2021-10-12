@@ -4,7 +4,7 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>   
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
     </head>
     <body>
         <div class="container">
@@ -12,8 +12,10 @@
                 <div class="col list-group" style="padding-top: 30px;">
                     <h2>DNA sequence analyzer</h2>
                     <br />
-                    <textarea id="dna" placeholder="Your bacterial DNA sequence" class="form-control" rows="5"></textarea>
+                    <i>Note: be sure to include a start codon and stop codon in your sequence so that code runs smoothly</i>
+                    <textarea id="dna" placeholder="Your DNA sequence" class="form-control" rows="5"></textarea>
                     <br />
+                    <i>Note: write the restriction site name exactly how they are written officially, e.g. EcoRI is acceptable while ecori is not</i>
                     <textarea id="restrictions" placeholder="Your restriction site names, separated by new line (if empty, check against all)" class="form-control" rows="3"></textarea>
                     <hr />
                     <div class="row">
